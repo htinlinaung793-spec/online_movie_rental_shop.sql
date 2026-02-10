@@ -246,4 +246,3 @@ FROM customer
 
 
 
-
