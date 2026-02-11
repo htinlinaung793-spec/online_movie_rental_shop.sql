@@ -3,6 +3,32 @@
 --Skills: Filtering, Aggregations, Pattern Matching, Date Handling
 ************************************************************/
 
+SQL Portfolio: DVD Rental Business Intelligence 📀
+An end-to-end analysis of customer behavior, inventory management, and financial performance using PostgreSQL.
+
+📌 Project Overview
+This project showcases my ability to extract actionable insights from a relational database. Using a sample DVD rental database (Sakila-style), I developed a series of SQL queries designed to assist marketing, finance, and operations teams in making data-driven decisions.
+
+🎯 Key Objectives
+Revenue Growth: Identifying high-value customers and analyzing payment trends.
+
+Operational Efficiency: Auditing unreturned rentals and monitoring staff performance.
+
+Marketing Strategy: Generating targeted email lists and analyzing geographic distribution.
+
+Data Integrity: Identifying missing records and validating data formats.
+
+🛠️ Tech Stack & Skills
+Language: SQL (PostgreSQL)
+
+Key Techniques: * Aggregations: SUM, AVG, COUNT, MIN/MAX
+
+Filtering: WHERE, HAVING, LIKE/ILIKE, BETWEEN, IN
+
+Data Cleaning: String manipulation (CONCAT, LENGTH, SUBSTRING), NULL handling
+
+Logic: GROUP BY, ORDER BY, LIMIT
+
 ```sql
 -- SECTION 1: BASIC DATA EXTRACTION
 -- ----------------------------------------------------------
