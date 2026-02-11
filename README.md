@@ -3,188 +3,271 @@
 --Skills: Filtering, Aggregations, Pattern Matching, Date Handling
 ************************************************************/
 
+```sql
 -- SECTION 1: BASIC DATA EXTRACTION
 -- ----------------------------------------------------------
 
-```sql
 -- 1. Full customer contact list for email campaign
+-- Purpose: Generate a mailing list for marketing outreach.
 SELECT
     first_name,
     last_name,
+    CONCAT(first_name, ' ', last_name) AS full_name,
     email
-FROM customer;
+FROM customer
+ORDER BY last_name ASC;
+
 
 -- 2. Sort customer list by last name
+-- Purpose: Create an alphabetical reference list for customer support.
 SELECT
-    *
+    customer_id,
+    first_name,
+    last_name,
+    email
 FROM customer
-ORDER BY last_name DESC, first_name DESC;
+ORDER BY 
+    last_name DESC, 
+    first_name DESC;
+
 
 -- 3. Different prices that have been paid from High to Low
+-- Purpose: Identify the various price points currently offered to customers.
 SELECT DISTINCT
-    amount
+    amount AS payment_amount
 FROM payment
-ORDER BY amount DESC;
+ORDER BY payment_amount DESC;
+
 
 -- 4. A list of all the districts customers are from
+-- Purpose: Identify which regions or districts the business currently serves.
 SELECT DISTINCT
     district
-FROM address;
+FROM address
+ORDER BY district ASC;
+
 
 -- 5. Latest rental date
+-- Purpose: Determine the most recent activity in the store to check system latency.
 SELECT
-    rental_date
+    rental_date AS latest_rental_timestamp
 FROM rental
 ORDER BY rental_date DESC
 LIMIT 1;
 
+
 -- 6. How many films does the company have?
+-- Purpose: Audit the total number of unique titles available in the catalog.
 SELECT
-    COUNT(DISTINCT film_id)
+    COUNT(DISTINCT film_id) AS total_film_count
 FROM film;
 
+
 -- 7. How many distinct last names are there?
+-- Purpose: Analyze demographic diversity within the customer base.
 SELECT
-    COUNT(DISTINCT last_name)
+    COUNT(DISTINCT last_name) AS unique_last_name_count
 FROM customer;
 
--- 8. Payments made by customer_id 100
+-- SECTION 2: Filtering and conditional logic
+-- ----------------------------------------------------------
+
+-- 8. Transaction count for Customer 100
+-- Purpose: Analyze the engagement level/loyalty of a specific user.
 SELECT
-    COUNT(*)
+    COUNT(*) AS total_payments_count
 FROM payment
 WHERE customer_id = 100;
 
--- 9. Find customer by first name 'ERICA'
+
+-- 9. Search for specific customer
+-- Purpose: Quickly retrieve contact details for a specific individual.
 SELECT
     first_name,
-    last_name
+    last_name,
+    email
 FROM customer
 WHERE first_name = 'ERICA';
 
--- 10. Check for missing first names
+
+-- 10. Data Integrity Check: Missing first names
+-- Purpose: Quality control check to identify incomplete user profiles.
 SELECT
-    COUNT(*)
+    COUNT(*) AS missing_name_count
 FROM customer
 WHERE first_name IS NULL;
 
--- 11. Rentals not returned yet
+
+-- 11. Operational Audit: Unreturned rentals
+-- Purpose: Track outstanding inventory that has not yet been returned.
 SELECT
-    COUNT(*)
+    COUNT(*) AS active_rentals_count
 FROM rental
 WHERE return_date IS NULL;
 
--- 12. Payments less than or equal to $2
+
+-- 12. Low-value transaction filtering (<= $2)
+-- Purpose: Identify budget-tier transactions for promotional analysis.
 SELECT
     payment_id,
+    customer_id,
     amount
 FROM payment
-WHERE amount <= 2;
+WHERE amount <= 2
+ORDER BY amount DESC;
 
--- 13. Specific customers with amounts < $2 or > $10
+
+-- 13. Outlier payment values for specific customers
+-- Purpose: Audit specific high-value or low-value anomalies for targeted accounts.
 SELECT
-    *
+    payment_id,
+    customer_id,
+    amount,
+    payment_date
 FROM payment
 WHERE customer_id IN (322, 346, 354)
-  AND (amount < 2 OR amount > 10)
-ORDER BY customer_id ASC, amount DESC;
+    AND (amount < 2 OR amount > 10)
+ORDER BY 
+    customer_id ASC, 
+    amount DESC;
 
--- 14. Targeted January 2020 Audit
+
+-- 14. Targeted January 2020 Financial Audit
+-- Purpose: Reconcile specific transactions for a monthly financial review.
 SELECT
-    *
+    payment_id,
+    customer_id,
+    amount,
+    payment_date
 FROM payment
 WHERE customer_id IN (12, 25, 67, 93, 124, 234)
-  AND amount IN (4.99, 7.99, 9.99)
-  AND payment_date BETWEEN '2020-01-01' AND '2020-02-01';
+    AND amount IN (4.99, 7.99, 9.99)
+    AND payment_date >= '2020-01-01' 
+    AND payment_date < '2020-02-01';
 
--- 15. Count movies with "Documentary" in description
+
+-- 15. Content Analysis: "Documentary" keyword search
+-- Purpose: Quantify the volume of niche content (Documentaries) in the catalog.
 SELECT
-    COUNT(*)
+    COUNT(*) AS documentary_description_count
 FROM film
 WHERE description ILIKE '%Documentary%';
 
--- 16. Search for 'Saga' with specific Title patterns
+
+-- 16. Title and Description Pattern Matching
+-- Purpose: Filter films based on complex naming conventions for promotional collections.
 SELECT
-    COUNT(*) AS no_of_movies
+    COUNT(*) AS saga_pattern_movie_count
 FROM film
 WHERE description ILIKE '%Saga%'
-  AND (title ILIKE 'A%' OR title ILIKE '%R');
+    AND (title ILIKE 'A%' OR title ILIKE '%R');
 
--- 1. Customers with 'ER' in name and 'A' as the 2nd letter
+
+-- 17. Customer Name Pattern Matching
+-- Purpose: Advanced search for customer records with partial data.
 SELECT
-    *
+    first_name,
+    last_name,
+    email
 FROM customer
 WHERE first_name ILIKE '%ER%'
-  AND first_name ILIKE '_A%'
+    AND first_name ILIKE '_A%'
 ORDER BY last_name DESC;
 
--- 2. Count of payments (Amount 0 or 3.99-7.99) on 2020-05-01
+
+-- 18. Daily transaction volume for specific price tiers
+-- Purpose: Monitor revenue performance for specific price points on a given date.
 SELECT
-    COUNT(*) AS no_of_payments
+    COUNT(*) AS specific_tier_payment_count
 FROM payment
 WHERE (amount = 0 OR amount BETWEEN 3.99 AND 7.99)
-  AND payment_date BETWEEN '2020-05-01' AND '2020-05-02';
+    AND payment_date >= '2020-05-01' 
+    AND payment_date < '2020-05-02';
 
--- 3. Basic Stats of replacement cost in film table
+-- SECTION 3: Data Aggregation and String Manipulation
+-- ----------------------------------------------------------
+
+-- 19. Inventory Financial Metrics
+-- Purpose: Calculate the total financial exposure and average replacement 
+--          cost for the film catalog.
 SELECT
-    MIN(replacement_cost) AS min_replacement,
-    MAX(replacement_cost) AS max_replacement,
-    ROUND(AVG(replacement_cost), 2) AS avg_replacement,
-    SUM(replacement_cost) AS total_replacement_value
+    MIN(replacement_cost) AS min_replacement_cost,
+    MAX(replacement_cost) AS max_replacement_cost,
+    ROUND(AVG(replacement_cost), 2) AS avg_replacement_cost,
+    SUM(replacement_cost) AS total_inventory_replacement_value
 FROM film;
 
--- 4. Staff performance: Total amount and count of payments
+
+-- 20. Staff Performance Overview
+-- Purpose: Evaluate employee productivity based on total revenue and 
+--          transaction volume (excluding refunds/zero-amount transactions).
 SELECT
     staff_id,
-    SUM(amount) AS total_amount,
-    COUNT(amount) AS total_payments
+    SUM(amount) AS total_revenue,
+    COUNT(amount) AS total_transaction_count
 FROM payment
 WHERE amount > 0
 GROUP BY staff_id
-ORDER BY staff_id;
+ORDER BY staff_id ASC;
 
--- 5. Highest daily sales and volume per employee
+
+-- 21. Peak Sales Performance by Employee
+-- Purpose: Identify the highest revenue-generating days for each staff member.
 SELECT
     staff_id,
     DATE(payment_date) AS sales_date,
-    SUM(amount) AS daily_sum,
-    COUNT(*) AS daily_count
+    SUM(amount) AS daily_revenue_total,
+    COUNT(*) AS daily_transaction_count
 FROM payment
 WHERE amount > 0
 GROUP BY staff_id, DATE(payment_date)
-ORDER BY SUM(amount) DESC, DATE(payment_date);
+ORDER BY daily_revenue_total DESC, sales_date ASC;
 
--- 6. Average payment per customer/day with >1 payment (Late April 2020)
+
+-- 22. High-Frequency Customer Analysis (April 2020)
+-- Purpose: Identify loyal customers who made multiple purchases in a single 
+--          day during the late April promotional period.
 SELECT
     customer_id,
     DATE(payment_date) AS payment_date,
-    ROUND(AVG(amount), 2) AS avg_amount,
-    COUNT(*) AS payment_count
+    ROUND(AVG(amount), 2) AS avg_transaction_amount,
+    COUNT(*) AS daily_payment_count
 FROM payment
-WHERE DATE(payment_date) IN ('2020-04-28', '2020-04-29', '2020-04-30')
+WHERE DATE(payment_date) BETWEEN '2020-04-28' AND '2020-04-30'
 GROUP BY customer_id, DATE(payment_date)
 HAVING COUNT(*) > 1
-ORDER BY avg_amount DESC;
+ORDER BY avg_transaction_amount DESC;
 
--- 7. Email character analysis
+
+-- 23. Email Format Analysis
+-- Purpose: Identify long email addresses that may require UI layout 
+--          adjustments or specific data cleaning.
 SELECT
-    UPPER(email) AS email_upper,
-    LOWER(email) AS email_lower,
-    LENGTH(email) AS email_length
+    UPPER(email) AS email_uppercase,
+    LOWER(email) AS email_lowercase,
+    LENGTH(email) AS email_char_length
 FROM customer
 WHERE LENGTH(email) > 30;
 
--- 8. Find long names (over 10 chars) and output in lower case
+
+-- 24. Long-Name Customer Identification
+-- Purpose: Extract customer records with names exceeding 10 characters 
+--          for specialized formatting or data validation.
 SELECT
-    LOWER(first_name) AS first_name,
-    LOWER(last_name) AS last_name,
-    LOWER(email) AS email
+    LOWER(first_name) AS clean_first_name,
+    LOWER(last_name) AS clean_last_name,
+    LOWER(email) AS clean_email
 FROM customer
 WHERE LENGTH(first_name) > 10 
    OR LENGTH(last_name) > 10;
 
--- 9. Extract the dot '.' from email address
+
+-- 25. Email Domain Delimiter Verification
+-- Purpose: Verify the position of the '.' in the domain suffix using string positioning.
 SELECT
-    RIGHT(LEFT(RIGHT(email, 5), 2), 1) AS extracted_dot
+    email,
+    SUBSTRING(email FROM '\.') AS extracted_dot,
+    POSITION('.' IN email) AS dot_position
 FROM customer;
 ```
 
